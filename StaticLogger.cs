@@ -14,6 +14,7 @@ namespace Penguin.Debugging
         static StaticLogger()
         {
             Level = LoggingLevel.None;
+            Queue = new StringBuilder();
         }
 
         static StringBuilder Queue { get; set; }
@@ -40,10 +41,11 @@ namespace Penguin.Debugging
             if(Level == LoggingLevel.None)
             {
                 return;
-            } 
-                Queue.Append(toLog);
-                Queue.Append(System.Environment.NewLine);
-            if(levelToLog > Level)
+            }
+
+            Queue.Append(toLog);
+            Queue.Append(System.Environment.NewLine);
+            if(levelToLog >= Level)
             {
                 Flush();
             }
