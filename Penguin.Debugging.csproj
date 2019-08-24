@@ -8,7 +8,7 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>http://www.penguinms.com/Nuget</PackageProjectUrl>
     <PackageIconUrl>http://www.penguinms.com/client/images/pg.png</PackageIconUrl>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <Description>Tools for debugging Penguin (or other) applications</Description>
     <PackageLicenseFile>License.txt</PackageLicenseFile>
   </PropertyGroup>

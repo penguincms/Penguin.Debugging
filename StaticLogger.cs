@@ -11,8 +11,10 @@ namespace Penguin.Debugging
     /// </summary>
     public static class StaticLogger
     {
+        private static object objectLock;
         static StaticLogger()
         {
+            objectLock = new object();
             Level = LoggingLevel.None;
             Queue = new StringBuilder();
         }
@@ -43,8 +45,12 @@ namespace Penguin.Debugging
                 return;
             }
 
-            Queue.Append(toLog);
-            Queue.Append(System.Environment.NewLine);
+            lock (objectLock)
+            {
+                Queue.Append(toLog);
+                Queue.Append(System.Environment.NewLine);
+            }
+
             if(levelToLog >= Level)
             {
                 Flush();
@@ -62,11 +68,16 @@ namespace Penguin.Debugging
                 return false;
             }
 
-            bool Success = Endpoint.Invoke(Queue.ToString());
+            bool Success = false;
 
-            if(Success)
+            lock (objectLock)
             {
-                Queue.Clear();
+                Success = Endpoint.Invoke(Queue.ToString());
+
+                if (Success)
+                {
+                    Queue.Clear();
+                }
             }
 
             return Success;
