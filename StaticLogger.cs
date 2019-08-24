@@ -19,6 +19,17 @@ namespace Penguin.Debugging
             Queue = new StringBuilder();
         }
 
+        /// <summary>
+        /// If this bool is false, theres no point in logging anything since its not going anywhere
+        /// </summary>
+        public static bool IsListening
+        {
+            get
+            {
+                return Level != LoggingLevel.None;
+            }
+        }
+
         static StringBuilder Queue { get; set; }
         /// <summary>
         /// This func should accept the string to be logged, and return whether or not the log was successful.
@@ -40,7 +51,7 @@ namespace Penguin.Debugging
         /// <param name="levelToLog">If the log level is higher (less frequent) than the application has set, it will cause the log to flush</param>
         public static void Log(string toLog, LoggingLevel levelToLog)
         {
-            if(Level == LoggingLevel.None)
+            if(!IsListening)
             {
                 return;
             }
