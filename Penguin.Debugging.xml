@@ -6,7 +6,7 @@
     <members>
         <member name="T:Penguin.Debugging.StaticLogger">
             <summary>
-            A static class designed to be the target of debugging messages. 
+            A static class designed to be the target of debugging messages.
             Contains an endpoint that can be assigned on application start to retrieve any messages that are sent to this class
             Enabling this may greatly slow down the application but is useful for logging low level messages to diagnose problems
             </summary>
@@ -14,7 +14,7 @@
         <member name="P:Penguin.Debugging.StaticLogger.Endpoint">
             <summary>
             This func should accept the string to be logged, and return whether or not the log was successful.
-            If it returns false, the message queue will not be cleared. This is incase the message is logged before 
+            If it returns false, the message queue will not be cleared. This is incase the message is logged before
             your output is ready to handle the message. The message is returned as a single new-line seperated string
             for speed
             </summary>
