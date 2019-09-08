@@ -11,32 +11,6 @@
             Enabling this may greatly slow down the application but is useful for logging low level messages to diagnose problems
             </summary>
         </member>
-        <member name="P:Penguin.Debugging.StaticLogger.Endpoint">
-            <summary>
-            This func should accept the string to be logged, and return whether or not the log was successful.
-            If it returns false, the message queue will not be cleared. This is incase the message is logged before
-            your output is ready to handle the message. The message is returned as a single new-line seperated string
-            for speed
-            </summary>
-        </member>
-        <member name="P:Penguin.Debugging.StaticLogger.Level">
-            <summary>
-            This should represent how often messages are flushed to the endpoint
-            </summary>
-        </member>
-        <member name="M:Penguin.Debugging.StaticLogger.Log(System.String,Penguin.Debugging.StaticLogger.LoggingLevel)">
-            <summary>
-            Queues a message to be sent to the endpoint
-            </summary>
-            <param name="toLog">The message to log</param>
-            <param name="levelToLog">If the log level is higher (less frequent) than the application has set, it will cause the log to flush</param>
-        </member>
-        <member name="M:Penguin.Debugging.StaticLogger.Flush">
-            <summary>
-            Attempts to flush the message queue to the endpoint. returns false if the endpoint reports a failure
-            </summary>
-            <returns>false if the endpoint reports a failure</returns>
-        </member>
         <member name="T:Penguin.Debugging.StaticLogger.LoggingLevel">
             <summary>
             Represents the frequency that messages will be send to the logging endpoint
@@ -61,6 +35,37 @@
             <summary>
             Flushed messages should only occur on finalization of a process, for when a process is succeeding but its state is not correct
             </summary>
+        </member>
+        <member name="P:Penguin.Debugging.StaticLogger.Endpoint">
+            <summary>
+            This func should accept the string to be logged, and return whether or not the log was successful.
+            If it returns false, the message queue will not be cleared. This is incase the message is logged before
+            your output is ready to handle the message. The message is returned as a single new-line seperated string
+            for speed
+            </summary>
+        </member>
+        <member name="P:Penguin.Debugging.StaticLogger.IsListening">
+            <summary>
+            If this bool is false, theres no point in logging anything since its not going anywhere
+            </summary>
+        </member>
+        <member name="P:Penguin.Debugging.StaticLogger.Level">
+            <summary>
+            This should represent how often messages are flushed to the endpoint
+            </summary>
+        </member>
+        <member name="M:Penguin.Debugging.StaticLogger.Flush">
+            <summary>
+            Attempts to flush the message queue to the endpoint. returns false if the endpoint reports a failure
+            </summary>
+            <returns>false if the endpoint reports a failure</returns>
+        </member>
+        <member name="M:Penguin.Debugging.StaticLogger.Log(System.String,Penguin.Debugging.StaticLogger.LoggingLevel)">
+            <summary>
+            Queues a message to be sent to the endpoint
+            </summary>
+            <param name="toLog">The message to log</param>
+            <param name="levelToLog">If the log level is higher (less frequent) than the application has set, it will cause the log to flush</param>
         </member>
     </members>
 </doc>
