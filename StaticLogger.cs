@@ -58,14 +58,7 @@ namespace Penguin.Debugging
         /// <summary>
         /// This should represent how often messages are flushed to the endpoint
         /// </summary>
-        public static LoggingLevel Level { get; set; }
-
-        static StaticLogger()
-        {
-            objectLock = new object();
-            Level = LoggingLevel.None;
-            Queue = new StringBuilder();
-        }
+        public static LoggingLevel Level { get; set; } = LoggingLevel.None;
 
         /// <summary>
         /// Attempts to flush the message queue to the endpoint. returns false if the endpoint reports a failure
@@ -80,7 +73,7 @@ namespace Penguin.Debugging
 
             bool Success = false;
 
-            lock (objectLock)
+            lock (ObjectLock)
             {
                 Success = Endpoint.Invoke(Queue.ToString());
 
@@ -105,7 +98,7 @@ namespace Penguin.Debugging
                 return;
             }
 
-            lock (objectLock)
+            lock (ObjectLock)
             {
                 Queue.Append(toLog);
                 Queue.Append(System.Environment.NewLine);
@@ -117,7 +110,7 @@ namespace Penguin.Debugging
             }
         }
 
-        private static StringBuilder Queue { get; set; }
-        private static object objectLock;
+        private static object ObjectLock { get; set; } = new object();
+        private static StringBuilder Queue { get; set; } = new StringBuilder();
     }
 }
