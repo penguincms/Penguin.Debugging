@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using Penguin.Extensions.Exceptions;
 
 namespace Penguin.Debugging
 {
@@ -21,19 +22,26 @@ namespace Penguin.Debugging
             None = 0,
 
             /// <summary>
+            /// Flushed messages should occur when an exception is logged
+            /// </summary>
+            Exception = 1,
+
+            /// <summary>
             /// All messages are flushed to the end point as they are logged. For diagnosing issues within a logging method
             /// </summary>
-            Call = 1,
+            Call = 2,
 
             /// <summary>
             /// All messages are flushed to the end point when a method returns
             /// </summary>
-            Method = 2,
+            Method = 3,
 
             /// <summary>
             /// Flushed messages should only occur on finalization of a process, for when a process is succeeding but its state is not correct
             /// </summary>
-            Final = 3
+            Final = 4,
+
+
         }
 
         /// <summary>
@@ -43,6 +51,7 @@ namespace Penguin.Debugging
         /// for speed
         /// </summary>
         public static Func<string, bool> Endpoint { get; set; }
+
 
         /// <summary>
         /// If this bool is false, theres no point in logging anything since its not going anywhere
@@ -91,7 +100,7 @@ namespace Penguin.Debugging
         /// </summary>
         /// <param name="toLog">The message to log</param>
         /// <param name="levelToLog">If the log level is higher (less frequent) than the application has set, it will cause the log to flush</param>
-        public static void Log(string toLog, LoggingLevel levelToLog)
+        public static void Log(string toLog, LoggingLevel levelToLog = LoggingLevel.Call)
         {
             if (!IsListening)
             {
@@ -107,6 +116,28 @@ namespace Penguin.Debugging
             if (levelToLog >= Level)
             {
                 Flush();
+            }
+        }
+
+        /// <summary>
+        /// Logs an exception as an Exception level event. Logs stack trace and message recursively
+        /// </summary>
+        /// <param name="ex">The exception to log</param>
+        /// <param name="levelToLog">Allows the level to be overridden</param>
+        public static void Log(Exception ex, LoggingLevel levelToLog = LoggingLevel.Exception)
+        {
+            if(IsListening)
+            {
+                try
+                {
+                    Log(ex.RecursiveMessage(), levelToLog);
+                    Log(ex.RecursiveStackTrace(), levelToLog);
+                } catch (Exception iex)
+                {
+                    Log("An exception has been encountered while logging the previous exception", LoggingLevel.Exception);
+                    Log(iex.Message, LoggingLevel.Exception);
+                    Log(iex.StackTrace, LoggingLevel.Exception);
+                }
             }
         }
 
