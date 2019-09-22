@@ -141,7 +141,7 @@ namespace Penguin.Debugging
             }
         }
 
-        private static object ObjectLock { get; set; } = new object();
-        private static StringBuilder Queue { get; set; } = new StringBuilder();
+        private static object ObjectLock = new object();
+        private static StringBuilder Queue = new StringBuilder();
     }
 }
