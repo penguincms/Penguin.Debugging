@@ -1,0 +1,8 @@
+Penguin.Files
+Penguin.Messaging.Core
+Penguin.Persistence.Database
+Penguin.Persistence.DependencyInjection
+Penguin.Persistence.Repositories.DependencyInjection
+Penguin.Persistence.Repositories.EntityFramework
+Penguin.Reflection
+Penguin.Reflection.Serialization
