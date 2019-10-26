@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <doc>
     <assembly>
-        <name>Penguin.Debugging.Local</name>
+        <name>Penguin.Debugging</name>
     </assembly>
     <members>
         <member name="T:Penguin.Debugging.StaticLogger">
