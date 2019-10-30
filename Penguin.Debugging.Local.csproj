@@ -5,6 +5,8 @@
     <PackageProjectUrl>https://github.com/penguincms/Penguin.Debugging</PackageProjectUrl>
     <Version>2.0.1</Version>
     <Description>Tools for debugging Penguin (or other) applications</Description>
+    <AssemblyName>Penguin.Debugging</AssemblyName>
+    <RootNamespace>Penguin.Debugging</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Penguin.Extensions.Exceptions\Penguin.Extensions.Exceptions.Local.csproj" />

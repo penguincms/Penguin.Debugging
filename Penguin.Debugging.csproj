@@ -5,8 +5,10 @@
     <PackageProjectUrl>https://github.com/penguincms/Penguin.Debugging</PackageProjectUrl>
     <Version>2.0.1</Version>
     <Description>Tools for debugging Penguin (or other) applications</Description>
+    <AssemblyName>Penguin.Debugging</AssemblyName>
+    <RootNamespace>Penguin.Debugging</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Penguin.Extensions.Exceptions" Version="2.0.1-T9M1HHH" />
+    <PackageReference Include="Penguin.Extensions.Exceptions" Version="2.0.1-T9M2XAX" />
   </ItemGroup>
 </Project>
