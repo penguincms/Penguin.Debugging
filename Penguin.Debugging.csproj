@@ -9,6 +9,6 @@
     <RootNamespace>Penguin.Debugging</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Penguin.Extensions.Exceptions" Version="2.0.1-T9M3AAF" />
+    <PackageReference Include="Penguin.Extensions.Exceptions" Version="2.0.1-T9MJL4F" />
   </ItemGroup>
 </Project>
