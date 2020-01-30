@@ -21,6 +21,11 @@
             All messages are abandoned. Nothing is queued
             </summary>
         </member>
+        <member name="F:Penguin.Debugging.StaticLogger.LoggingLevel.Exception">
+            <summary>
+            Flushed messages should occur when an exception is logged
+            </summary>
+        </member>
         <member name="F:Penguin.Debugging.StaticLogger.LoggingLevel.Call">
             <summary>
             All messages are flushed to the end point as they are logged. For diagnosing issues within a logging method
@@ -66,6 +71,13 @@
             </summary>
             <param name="toLog">The message to log</param>
             <param name="levelToLog">If the log level is higher (less frequent) than the application has set, it will cause the log to flush</param>
+        </member>
+        <member name="M:Penguin.Debugging.StaticLogger.Log(System.Exception,Penguin.Debugging.StaticLogger.LoggingLevel)">
+            <summary>
+            Logs an exception as an Exception level event. Logs stack trace and message recursively
+            </summary>
+            <param name="ex">The exception to log</param>
+            <param name="levelToLog">Allows the level to be overridden</param>
         </member>
     </members>
 </doc>
