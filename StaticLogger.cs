@@ -11,9 +11,9 @@ namespace Penguin.Debugging
     /// </summary>
     public static class StaticLogger
     {
-        private static object ObjectLock = new object();
+        private static readonly object ObjectLock = new object();
 
-        private static StringBuilder Queue = new StringBuilder();
+        private static readonly StringBuilder Queue = new StringBuilder();
 
         /// <summary>
         /// This func should accept the string to be logged, and return whether or not the log was successful.
@@ -26,13 +26,7 @@ namespace Penguin.Debugging
         /// <summary>
         /// If this bool is false, theres no point in logging anything since its not going anywhere
         /// </summary>
-        public static bool IsListening
-        {
-            get
-            {
-                return Level != LoggingLevel.None;
-            }
-        }
+        public static bool IsListening => Level != LoggingLevel.None;
 
         /// <summary>
         /// This should represent how often messages are flushed to the endpoint
