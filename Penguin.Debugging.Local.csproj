@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="Penguin.Projects.Shared\Penguin.Projects.Shared.csproj" />
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageProjectUrl>https://github.com/penguincms/Penguin.Debugging</PackageProjectUrl>
+    <Version>2.0.1</Version>
+    <Description>Tools for debugging Penguin (or other) applications</Description>
+    <AssemblyName>Penguin.Debugging</AssemblyName>
+    <RootNamespace>Penguin.Debugging</RootNamespace>
+    <DocumentationFile>Penguin.Debugging.xml</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Penguin.Extensions.Exceptions\Penguin.Extensions.Exceptions.Local.csproj" />
+  </ItemGroup>
+</Project>
