@@ -4,6 +4,21 @@
         <name>Penguin.Debugging</name>
     </assembly>
     <members>
+        <member name="F:Penguin.Debugging.ObjectSerializationMethod.ToString">
+            <summary>
+            Call ToString on objects to serialize
+            </summary>
+        </member>
+        <member name="F:Penguin.Debugging.ObjectSerializationMethod.Auto">
+            <summary>
+            Call ToString if overridden, otherwise call ObjectSerializationOverride
+            </summary>
+        </member>
+        <member name="F:Penguin.Debugging.ObjectSerializationMethod.Override">
+            <summary>
+            Always call ObjectSerializationOverride
+            </summary>
+        </member>
         <member name="T:Penguin.Debugging.LogWriter">
             <summary>
             Logs everything, everywhere
@@ -14,11 +29,21 @@
             The path that the files will be created in
             </summary>
         </member>
+        <member name="P:Penguin.Debugging.LogWriter.ObjectSerializationMethod">
+            <summary>
+            The method used to serialized non-string objects. defaults to Auto
+            </summary>
+        </member>
+        <member name="P:Penguin.Debugging.LogWriter.ObjectSerializationOverride">
+            <summary>
+            An optional method used to override object serialization if additional logic is required (ex json serialization)
+            </summary>
+        </member>
         <member name="M:Penguin.Debugging.LogWriter.#ctor(System.String)">
             <summary>
             Constructs a new instance of the log writer
             </summary>
-            <param name="logFilePath"></param>
+            <param name="logFilePath">Defaults to "Logs"</param>
         </member>
         <member name="M:Penguin.Debugging.LogWriter.Dispose">
             <summary>
