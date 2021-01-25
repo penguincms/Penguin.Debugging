@@ -34,7 +34,7 @@ namespace Penguin.Debugging
         public string LogFilePath { get; set; } = "Logs";
 
         private bool disposedValue;
-        
+
         private readonly StreamWriter streamWriter;
 
         /// <summary>
@@ -60,7 +60,8 @@ namespace Penguin.Debugging
             try
             {
                 AssemblyName = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location);
-            } catch(Exception ex)
+            }
+            catch (Exception ex)
             {
 
             }
@@ -112,24 +113,24 @@ namespace Penguin.Debugging
 
         private string SerializeObject(object toSerialize)
         {
-            if(toSerialize is string s)
+            if (toSerialize is string s)
             {
                 return s;
             }
 
-            if(this.ObjectSerializationOverride is null)
+            if (this.ObjectSerializationOverride is null)
             {
                 return $"{toSerialize}";
             }
 
-            switch(this.ObjectSerializationMethod)
+            switch (this.ObjectSerializationMethod)
             {
                 case ObjectSerializationMethod.ToString:
                     return $"{toSerialize}";
                 case ObjectSerializationMethod.Override:
                     return this.ObjectSerializationOverride(toSerialize);
                 case ObjectSerializationMethod.Auto:
-                    if(toSerialize is null)
+                    if (toSerialize is null)
                     {
                         return string.Empty;
                     }

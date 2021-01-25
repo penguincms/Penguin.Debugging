@@ -10,6 +10,6 @@
     <DocumentationFile>Penguin.Debugging.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Penguin.Extensions.Exceptions" Version="5.0.1-TA56XNT" />
+    <PackageReference Include="Penguin.Extensions.Exceptions" Version="5.0.1-TA99DVY" />
   </ItemGroup>
 </Project>
