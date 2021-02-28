@@ -5,37 +5,19 @@ using System.Reflection;
 
 namespace Penguin.Debugging
 {
-    public enum ObjectSerializationMethod
-    {
-        /// <summary>
-        /// Call ToString on objects to serialize
-        /// </summary>
-        ToString,
-
-        /// <summary>
-        /// Call ToString if overridden, otherwise call ObjectSerializationOverride
-        /// </summary>
-        Auto,
-
-        /// <summary>
-        /// Always call ObjectSerializationOverride
-        /// </summary>
-        Override
-    }
-
     /// <summary>
     /// Logs everything, everywhere
     /// </summary>
     public class LogWriter : IDisposable
     {
+        private readonly StreamWriter streamWriter;
+
+        private bool disposedValue;
+
         /// <summary>
         /// The path that the files will be created in
         /// </summary>
         public string LogFilePath { get; set; } = "Logs";
-
-        private bool disposedValue;
-
-        private readonly StreamWriter streamWriter;
 
         /// <summary>
         /// The method used to serialized non-string objects. defaults to Auto
@@ -63,7 +45,6 @@ namespace Penguin.Debugging
             }
             catch (Exception ex)
             {
-
             }
 
             //New file name based on current time
@@ -111,38 +92,6 @@ namespace Penguin.Debugging
             Console.WriteLine(logString);
         }
 
-        private string SerializeObject(object toSerialize)
-        {
-            if (toSerialize is string s)
-            {
-                return s;
-            }
-
-            if (this.ObjectSerializationOverride is null)
-            {
-                return $"{toSerialize}";
-            }
-
-            switch (this.ObjectSerializationMethod)
-            {
-                case ObjectSerializationMethod.ToString:
-                    return $"{toSerialize}";
-                case ObjectSerializationMethod.Override:
-                    return this.ObjectSerializationOverride(toSerialize);
-                case ObjectSerializationMethod.Auto:
-                    if (toSerialize is null)
-                    {
-                        return string.Empty;
-                    }
-
-                    MethodInfo mi = toSerialize.GetType().GetMethod("ToString");
-
-                    return mi.DeclaringType == typeof(object) ? this.ObjectSerializationOverride(toSerialize) : $"{toSerialize}";
-                default:
-                    throw new NotImplementedException($"{nameof(this.ObjectSerializationMethod)} unimplemented value {this.ObjectSerializationMethod}");
-            }
-
-        }
         /// <summary>
         /// Disposes of the writer and flushes to disk
         /// </summary>
@@ -164,11 +113,64 @@ namespace Penguin.Debugging
             }
         }
 
+        private string SerializeObject(object toSerialize)
+        {
+            if (toSerialize is string s)
+            {
+                return s;
+            }
+
+            if (this.ObjectSerializationOverride is null)
+            {
+                return $"{toSerialize}";
+            }
+
+            switch (this.ObjectSerializationMethod)
+            {
+                case ObjectSerializationMethod.ToString:
+                    return $"{toSerialize}";
+
+                case ObjectSerializationMethod.Override:
+                    return this.ObjectSerializationOverride(toSerialize);
+
+                case ObjectSerializationMethod.Auto:
+                    if (toSerialize is null)
+                    {
+                        return string.Empty;
+                    }
+
+                    MethodInfo mi = toSerialize.GetType().GetMethod("ToString");
+
+                    return mi.DeclaringType == typeof(object) ? this.ObjectSerializationOverride(toSerialize) : $"{toSerialize}";
+
+                default:
+                    throw new NotImplementedException($"{nameof(this.ObjectSerializationMethod)} unimplemented value {this.ObjectSerializationMethod}");
+            }
+        }
+
         // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
         // ~LogWriter()
         // {
         //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         //     Dispose(disposing: false);
         // }
+    }
+
+    public enum ObjectSerializationMethod
+    {
+        /// <summary>
+        /// Call ToString on objects to serialize
+        /// </summary>
+        ToString,
+
+        /// <summary>
+        /// Call ToString if overridden, otherwise call ObjectSerializationOverride
+        /// </summary>
+        Auto,
+
+        /// <summary>
+        /// Always call ObjectSerializationOverride
+        /// </summary>
+        Override
     }
 }

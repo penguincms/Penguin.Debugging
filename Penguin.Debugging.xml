@@ -4,21 +4,6 @@
         <name>Penguin.Debugging</name>
     </assembly>
     <members>
-        <member name="F:Penguin.Debugging.ObjectSerializationMethod.ToString">
-            <summary>
-            Call ToString on objects to serialize
-            </summary>
-        </member>
-        <member name="F:Penguin.Debugging.ObjectSerializationMethod.Auto">
-            <summary>
-            Call ToString if overridden, otherwise call ObjectSerializationOverride
-            </summary>
-        </member>
-        <member name="F:Penguin.Debugging.ObjectSerializationMethod.Override">
-            <summary>
-            Always call ObjectSerializationOverride
-            </summary>
-        </member>
         <member name="T:Penguin.Debugging.LogWriter">
             <summary>
             Logs everything, everywhere
@@ -59,6 +44,21 @@
         <member name="M:Penguin.Debugging.LogWriter.Dispose(System.Boolean)">
             <summary>
             Disposes of the writer and flushes to disk
+            </summary>
+        </member>
+        <member name="F:Penguin.Debugging.ObjectSerializationMethod.ToString">
+            <summary>
+            Call ToString on objects to serialize
+            </summary>
+        </member>
+        <member name="F:Penguin.Debugging.ObjectSerializationMethod.Auto">
+            <summary>
+            Call ToString if overridden, otherwise call ObjectSerializationOverride
+            </summary>
+        </member>
+        <member name="F:Penguin.Debugging.ObjectSerializationMethod.Override">
+            <summary>
+            Always call ObjectSerializationOverride
             </summary>
         </member>
         <member name="T:Penguin.Debugging.StaticLogger">
