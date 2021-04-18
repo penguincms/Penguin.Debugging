@@ -92,6 +92,8 @@ namespace Penguin.Debugging
             Console.WriteLine(logString);
         }
 
+        public void Flush() => this.streamWriter.Flush();
+
         /// <summary>
         /// Disposes of the writer and flushes to disk
         /// </summary>
