@@ -24,22 +24,24 @@
             An optional method used to override object serialization if additional logic is required (ex json serialization)
             </summary>
         </member>
-        <member name="M:Penguin.Debugging.LogWriter.#ctor(System.String)">
+        <member name="M:Penguin.Debugging.LogWriter.#ctor(System.String,Penguin.Debugging.LogOutput)">
             <summary>
             Constructs a new instance of the log writer
             </summary>
             <param name="logFilePath">Defaults to "Logs"</param>
+            <param name="output">The location all lines should be written to by default</param>
         </member>
         <member name="M:Penguin.Debugging.LogWriter.Dispose">
             <summary>
             Disposes of the writer and flushes to disk
             </summary>
         </member>
-        <member name="M:Penguin.Debugging.LogWriter.WriteLine(System.Object)">
+        <member name="M:Penguin.Debugging.LogWriter.WriteLine(System.Object,System.Nullable{Penguin.Debugging.LogOutput})">
             <summary>
             Writes an object or message to the log targets
             </summary>
             <param name="toLog">The object or message to log</param>
+            <param name="target">Specific target for this output. If null, uses instance default</param>
         </member>
         <member name="M:Penguin.Debugging.LogWriter.Dispose(System.Boolean)">
             <summary>

@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 namespace Penguin.Debugging
 {
@@ -29,12 +32,24 @@ namespace Penguin.Debugging
         /// </summary>
         public Func<object, string> ObjectSerializationOverride { get; set; }
 
+
+        public LogOutput DefaultOutput { get; set; } = LogOutput.All;
+
+        public static readonly AsyncStringWriter DebugQueue = new AsyncStringWriter((s) => Debug.WriteLine(s));
+        
+        public static readonly AsyncStringWriter ConsoleQueue = new AsyncStringWriter((s) => Console.WriteLine(s));
+
+        public readonly AsyncStringWriter FileQueue;
+
+
         /// <summary>
         /// Constructs a new instance of the log writer
         /// </summary>
         /// <param name="logFilePath">Defaults to "Logs"</param>
-        public LogWriter(string logFilePath = null)
+        /// <param name="output">The location all lines should be written to by default</param>
+        public LogWriter(string logFilePath = null, LogOutput output = LogOutput.All)
         {
+            this.DefaultOutput = output;
             this.LogFilePath = logFilePath ?? this.LogFilePath;
 
             string AssemblyName = "Unknown";
@@ -58,6 +73,8 @@ namespace Penguin.Debugging
 
             //Wire up the stream writer
             this.streamWriter = new StreamWriter(new FileStream(Path.Combine(this.LogFilePath, FileName), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite));
+
+            FileQueue = new AsyncStringWriter((s) => this.streamWriter.WriteLine(s));
         }
 
         /// <summary>
@@ -74,7 +91,8 @@ namespace Penguin.Debugging
         /// Writes an object or message to the log targets
         /// </summary>
         /// <param name="toLog">The object or message to log</param>
-        public void WriteLine(object toLog)
+        /// <param name="target">Specific target for this output. If null, uses instance default</param>
+        public void WriteLine(object toLog, LogOutput? target = null)
         {
             //Time stamp it
             string prepend = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] ";
@@ -82,14 +100,38 @@ namespace Penguin.Debugging
             //Add the time stamp to the string
             string logString = $"{prepend} {this.SerializeObject(toLog)}";
 
-            //To the file
-            this.streamWriter.WriteLine(logString);
+            target = target ?? this.DefaultOutput;
 
-            //To the debug window
-            Debug.WriteLine(logString);
+            void CheckAndAdd(LogOutput flag, ConcurrentQueue<string> queue, BackgroundWorker worker)
+            {
+                if (target.Value.HasFlag(flag))
+                {
+                    bool wasEmpty = queue.IsEmpty;
 
-            //To the console
-            Console.WriteLine(logString);
+                    queue.Enqueue(logString);
+
+                    if (wasEmpty && !worker.IsBusy)
+                    {
+                        worker.RunWorkerAsync();
+                    }
+                }
+            }
+
+            if (target.Value.HasFlag(LogOutput.File))
+            {
+                //To the file
+                this.FileQueue.Enqueue(logString);
+            }
+
+            if (target.Value.HasFlag(LogOutput.Debug))
+            {
+                DebugQueue.Enqueue(logString);
+            }
+
+            if (target.Value.HasFlag(LogOutput.Console))
+            {
+                ConsoleQueue.Enqueue(logString);
+            }
         }
 
         public void Flush() => this.streamWriter.Flush();
@@ -103,6 +145,10 @@ namespace Penguin.Debugging
             {
                 if (disposing)
                 {
+                    FileQueue.Dispose();
+                    ConsoleQueue.Dispose();
+                    DebugQueue.Dispose();
+
                     //Ensure the file is flushed
                     this.streamWriter.Flush();
                     this.streamWriter.Close();
