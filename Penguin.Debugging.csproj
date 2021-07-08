@@ -2,7 +2,7 @@
   <Import Project="Penguin.Projects.Shared\Penguin.Projects.Shared.csproj" />
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <PackageProjectUrl>https://github.com/penguincms/Penguin.Debugging</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/PenguinCMS/Penguin.Debugging</PackageProjectUrl>
     <Version>5.0.5</Version>
     <Description>Tools for debugging Penguin (or other) applications</Description>
     <AssemblyName>Penguin.Debugging</AssemblyName>
@@ -10,6 +10,13 @@
     <DocumentationFile>Penguin.Debugging.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Penguin.Extensions.Exceptions" Version="5.0.4" />
+    <None Remove=".gitignore" />
+    <None Remove=".gitmodules" />
+    <None Remove=".meta" />
+    <None Remove=".metaOne" />
+    <None Remove="README.md" />
+    <None Remove="UpgradeLog.htm" />
+    <PackageReference Include="Penguin.Extensions.Exceptions" Version="5.0.6-TAHULSY" />
+    <PackageReference Include="Penguin.FileStreams" Version="1.0.1-TAHULSY" />
   </ItemGroup>
 </Project>

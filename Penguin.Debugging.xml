@@ -4,36 +4,66 @@
         <name>Penguin.Debugging</name>
     </assembly>
     <members>
+        <member name="T:Penguin.Debugging.AsyncStringWriter">
+            <summary>
+            An asyncronous string writer class. Accepts text into a queue, and uses a background thread to flush the text to a provided func for processing
+            </summary>
+        </member>
+        <member name="M:Penguin.Debugging.AsyncStringWriter.#ctor(System.Action{System.String})">
+            <summary>
+            Creates a new instance of the string writer class
+            </summary>
+            <param name="action">A function that should be the target of the processing background thread.</param>
+        </member>
+        <member name="M:Penguin.Debugging.AsyncStringWriter.Dispose">
+            <summary>
+            Disposes of the class, and flushes the queue
+            </summary>
+        </member>
+        <member name="M:Penguin.Debugging.AsyncStringWriter.Enqueue(System.String)">
+            <summary>
+            Adds a new line of text to the internal queue, to be flushed by the background thread
+            </summary>
+            <param name="toEnque">The string to Enqueue</param>
+        </member>
+        <member name="M:Penguin.Debugging.AsyncStringWriter.Dispose(System.Boolean)">
+            <summary>
+            Disposes of the class, and flushes the queue
+            </summary>
+            <param name="disposing"></param>
+        </member>
         <member name="T:Penguin.Debugging.LogWriter">
             <summary>
             Logs everything, everywhere
             </summary>
         </member>
-        <member name="P:Penguin.Debugging.LogWriter.LogFilePath">
+        <member name="P:Penguin.Debugging.LogWriter.Directory">
             <summary>
-            The path that the files will be created in
+            The Directory that any log files are written to
             </summary>
         </member>
-        <member name="P:Penguin.Debugging.LogWriter.ObjectSerializationMethod">
-            <summary>
-            The method used to serialized non-string objects. defaults to Auto
-            </summary>
-        </member>
-        <member name="P:Penguin.Debugging.LogWriter.ObjectSerializationOverride">
-            <summary>
-            An optional method used to override object serialization if additional logic is required (ex json serialization)
-            </summary>
-        </member>
-        <member name="M:Penguin.Debugging.LogWriter.#ctor(System.String,Penguin.Debugging.LogOutput)">
+        <member name="P:Penguin.Debugging.LogWriter.LogFileName">
             <summary>
             Constructs a new instance of the log writer
             </summary>
-            <param name="logFilePath">Defaults to "Logs"</param>
-            <param name="output">The location all lines should be written to by default</param>
+            <summary>
+            The name of the file the (if any) disk stream is being written to
+            </summary>
+        </member>
+        <member name="M:Penguin.Debugging.LogWriter.#ctor(Penguin.Debugging.LogWriterSettings)">
+            <summary>
+            Constructs a new instance of the log file writer with the given settings
+            </summary>
+            <param name="settings">Any settings to overwrite from default</param>
         </member>
         <member name="M:Penguin.Debugging.LogWriter.Dispose">
             <summary>
             Disposes of the writer and flushes to disk
+            </summary>
+        </member>
+        <member name="M:Penguin.Debugging.LogWriter.Flush">
+            <summary>
+            Flushes the disk output streamwriter
             </summary>
         </member>
         <member name="M:Penguin.Debugging.LogWriter.WriteLine(System.Object,System.Nullable{Penguin.Debugging.LogOutput})">
@@ -46,6 +76,41 @@
         <member name="M:Penguin.Debugging.LogWriter.Dispose(System.Boolean)">
             <summary>
             Disposes of the writer and flushes to disk
+            </summary>
+        </member>
+        <member name="T:Penguin.Debugging.LogWriterSettings">
+            <summary>
+            Class containing the settings to be used for an instance of the log writer
+            </summary>
+        </member>
+        <member name="P:Penguin.Debugging.LogWriterSettings.Compression">
+            <summary>
+            Compression to use when writing log files to disk
+            </summary>
+        </member>
+        <member name="P:Penguin.Debugging.LogWriterSettings.Directory">
+            <summary>
+            Output path for the log files. Defaults to "Logs"
+            </summary>
+        </member>
+        <member name="P:Penguin.Debugging.LogWriterSettings.ObjectSerializationMethod">
+            <summary>
+            The method used to serialized non-string objects. defaults to Auto
+            </summary>
+        </member>
+        <member name="P:Penguin.Debugging.LogWriterSettings.ObjectSerializationOverride">
+            <summary>
+            An optional method used to override object serialization if additional logic is required (ex json serialization)
+            </summary>
+        </member>
+        <member name="P:Penguin.Debugging.LogWriterSettings.OutputTarget">
+            <summary>
+            Location that the log lines should be written to. Defaults to "All"
+            </summary>
+        </member>
+        <member name="T:Penguin.Debugging.ObjectSerializationMethod">
+            <summary>
+            Determines how objects passed to the logwriter are serialized
             </summary>
         </member>
         <member name="F:Penguin.Debugging.ObjectSerializationMethod.ToString">

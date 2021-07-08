@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.ComponentModel;
+﻿using Penguin.FileStreams;
+using Penguin.FileStreams.Interfaces;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using System.Text;
 
 namespace Penguin.Debugging
 {
@@ -13,68 +12,65 @@ namespace Penguin.Debugging
     /// </summary>
     public class LogWriter : IDisposable
     {
-        private readonly StreamWriter streamWriter;
+        private static readonly AsyncStringWriter ConsoleQueue = new AsyncStringWriter((s) => Console.WriteLine(s));
+        private static readonly AsyncStringWriter DebugQueue = new AsyncStringWriter((s) => Debug.WriteLine(s));
+        private readonly AsyncStringWriter FileQueue;
+        private readonly IFileWriter FileWriter;
 
+        private readonly LogWriterSettings Settings;
         private bool disposedValue;
 
         /// <summary>
-        /// The path that the files will be created in
+        /// The Directory that any log files are written to
         /// </summary>
-        public string LogFilePath { get; set; } = "Logs";
+        public string Directory => this.Settings.Directory;
 
-        /// <summary>
-        /// The method used to serialized non-string objects. defaults to Auto
-        /// </summary>
-        public ObjectSerializationMethod ObjectSerializationMethod { get; set; } = ObjectSerializationMethod.Auto;
-
-        /// <summary>
-        /// An optional method used to override object serialization if additional logic is required (ex json serialization)
-        /// </summary>
-        public Func<object, string> ObjectSerializationOverride { get; set; }
-
-
-        public LogOutput DefaultOutput { get; set; } = LogOutput.All;
-
-        public static readonly AsyncStringWriter DebugQueue = new AsyncStringWriter((s) => Debug.WriteLine(s));
-        
-        public static readonly AsyncStringWriter ConsoleQueue = new AsyncStringWriter((s) => Console.WriteLine(s));
-
-        public readonly AsyncStringWriter FileQueue;
-
+        public string LogFileFullName => Path.Combine(this.Settings.Directory, this.LogFileName);
 
         /// <summary>
         /// Constructs a new instance of the log writer
         /// </summary>
-        /// <param name="logFilePath">Defaults to "Logs"</param>
-        /// <param name="output">The location all lines should be written to by default</param>
-        public LogWriter(string logFilePath = null, LogOutput output = LogOutput.All)
+        /// <summary>
+        /// The name of the file the (if any) disk stream is being written to
+        /// </summary>
+        public string LogFileName { get; private set; } = $"{DateTime.Now:yyyyMMdd_HHmmss}_{AssemblyName}.log";
+
+        private static string AssemblyName
         {
-            this.DefaultOutput = output;
-            this.LogFilePath = logFilePath ?? this.LogFilePath;
-
-            string AssemblyName = "Unknown";
-
-            try
+            get
             {
-                AssemblyName = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location);
-            }
-            catch (Exception ex)
-            {
-            }
+                string toReturn = "Unknown";
 
-            //New file name based on current time
-            string FileName = $"{DateTime.Now:yyyyMMdd_hhMMss}_{AssemblyName}.log";
+                try
+                {
+                    toReturn = Path.GetFileNameWithoutExtension(Assembly.GetEntryAssembly().Location);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+
+                return toReturn;
+            }
+        }
+
+        /// <summary>
+        /// Constructs a new instance of the log file writer with the given settings
+        /// </summary>
+        /// <param name="settings">Any settings to overwrite from default</param>
+        public LogWriter(LogWriterSettings settings = null)
+        {
+            this.Settings = settings ?? new LogWriterSettings();
 
             //Create output directory if it doesn't exist
-            if (!Directory.Exists(this.LogFilePath))
+            if (!System.IO.Directory.Exists(this.Settings.Directory))
             {
-                Directory.CreateDirectory(this.LogFilePath);
+                System.IO.Directory.CreateDirectory(this.Settings.Directory);
             }
 
-            //Wire up the stream writer
-            this.streamWriter = new StreamWriter(new FileStream(Path.Combine(this.LogFilePath, FileName), FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite));
+            this.FileWriter = FileWriterFactory.GetFileWriter(this.LogFileFullName, settings.Compression);
 
-            FileQueue = new AsyncStringWriter((s) => this.streamWriter.WriteLine(s));
+            this.FileQueue = new AsyncStringWriter((s) => this.FileWriter.WriteLine(s));
         }
 
         /// <summary>
@@ -85,6 +81,14 @@ namespace Penguin.Debugging
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             this.Dispose(disposing: true);
             GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Flushes the disk output streamwriter
+        /// </summary>
+        public void Flush()
+        {
+            this.FileWriter.Flush();
         }
 
         /// <summary>
@@ -100,23 +104,7 @@ namespace Penguin.Debugging
             //Add the time stamp to the string
             string logString = $"{prepend} {this.SerializeObject(toLog)}";
 
-            target = target ?? this.DefaultOutput;
-
-            void CheckAndAdd(LogOutput flag, ConcurrentQueue<string> queue, BackgroundWorker worker)
-            {
-                if (target.Value.HasFlag(flag))
-                {
-                    bool wasEmpty = queue.IsEmpty;
-
-                    queue.Enqueue(logString);
-
-                    if (wasEmpty && !worker.IsBusy)
-                    {
-                        worker.RunWorkerAsync();
-                    }
-                }
-            }
-
+            target = target ?? this.Settings.OutputTarget;
             if (target.Value.HasFlag(LogOutput.File))
             {
                 //To the file
@@ -134,8 +122,6 @@ namespace Penguin.Debugging
             }
         }
 
-        public void Flush() => this.streamWriter.Flush();
-
         /// <summary>
         /// Disposes of the writer and flushes to disk
         /// </summary>
@@ -143,17 +129,11 @@ namespace Penguin.Debugging
         {
             if (!this.disposedValue)
             {
-                if (disposing)
-                {
-                    FileQueue.Dispose();
-                    ConsoleQueue.Dispose();
-                    DebugQueue.Dispose();
+                this.FileQueue.Dispose();
+                ConsoleQueue.Dispose();
+                DebugQueue.Dispose();
 
-                    //Ensure the file is flushed
-                    this.streamWriter.Flush();
-                    this.streamWriter.Close();
-                    this.streamWriter.Dispose();
-                }
+                this.FileWriter.Dispose();
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
@@ -168,18 +148,18 @@ namespace Penguin.Debugging
                 return s;
             }
 
-            if (this.ObjectSerializationOverride is null)
+            if (this.Settings.ObjectSerializationOverride is null)
             {
                 return $"{toSerialize}";
             }
 
-            switch (this.ObjectSerializationMethod)
+            switch (this.Settings.ObjectSerializationMethod)
             {
                 case ObjectSerializationMethod.ToString:
                     return $"{toSerialize}";
 
                 case ObjectSerializationMethod.Override:
-                    return this.ObjectSerializationOverride(toSerialize);
+                    return this.Settings.ObjectSerializationOverride(toSerialize);
 
                 case ObjectSerializationMethod.Auto:
                     if (toSerialize is null)
@@ -189,36 +169,16 @@ namespace Penguin.Debugging
 
                     MethodInfo mi = toSerialize.GetType().GetMethod("ToString");
 
-                    return mi.DeclaringType == typeof(object) ? this.ObjectSerializationOverride(toSerialize) : $"{toSerialize}";
+                    return mi.DeclaringType == typeof(object) ? this.Settings.ObjectSerializationOverride(toSerialize) : $"{toSerialize}";
 
                 default:
-                    throw new NotImplementedException($"{nameof(this.ObjectSerializationMethod)} unimplemented value {this.ObjectSerializationMethod}");
+                    throw new NotImplementedException($"{nameof(this.Settings.ObjectSerializationMethod)} unimplemented value {this.Settings.ObjectSerializationMethod}");
             }
         }
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~LogWriter()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-    }
-
-    public enum ObjectSerializationMethod
-    {
-        /// <summary>
-        /// Call ToString on objects to serialize
-        /// </summary>
-        ToString,
-
-        /// <summary>
-        /// Call ToString if overridden, otherwise call ObjectSerializationOverride
-        /// </summary>
-        Auto,
-
-        /// <summary>
-        /// Always call ObjectSerializationOverride
-        /// </summary>
-        Override
+        ~LogWriter()
+        {
+            this.Dispose(false);
+        }
     }
 }

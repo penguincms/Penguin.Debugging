@@ -1,137 +1,138 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Text;
 using System.Threading;
 
 namespace Penguin.Debugging
 {
+    /// <summary>
+    /// An asyncronous string writer class. Accepts text into a queue, and uses a background thread to flush the text to a provided func for processing
+    /// </summary>
     public class AsyncStringWriter : IDisposable
     {
-        private readonly ConcurrentQueue<string> Queue = new ConcurrentQueue<string>();
-
         private readonly Action<string> Action;
-
+        private readonly object ProcessLock = new object();
+        private readonly ConcurrentQueue<string> Queue = new ConcurrentQueue<string>();
         private readonly BackgroundWorker Worker = new BackgroundWorker();
         private readonly object WorkerLock = new object();
-        private readonly object ProcessLock = new object();
-
         private bool disposedValue;
 
         private bool WorkerRunning = false;
 
+        /// <summary>
+        /// Creates a new instance of the string writer class
+        /// </summary>
+        /// <param name="action">A function that should be the target of the processing background thread.</param>
         public AsyncStringWriter(Action<string> action)
         {
-            Action = action;
+            this.Action = action;
 
-            Worker.DoWork += (se, e) => { LoopProcess(); };
+            this.Worker.DoWork += (se, e) => this.LoopProcess();
         }
 
+        /// <summary>
+        /// Disposes of the class, and flushes the queue
+        /// </summary>
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            this.Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Adds a new line of text to the internal queue, to be flushed by the background thread
+        /// </summary>
+        /// <param name="toEnque">The string to Enqueue</param>
         public void Enqueue(string toEnque)
         {
-
             //Dont let the worker check its state while we're mucking with it
-            Monitor.Enter(WorkerLock);
+            Monitor.Enter(this.WorkerLock);
 
             //Add the line to print
-            Queue.Enqueue(toEnque);
+            this.Queue.Enqueue(toEnque);
 
             //Set internally by the worker before it exits, so more accurate than IsBusy
-            if(!WorkerRunning || !Worker.IsBusy)
+            if (!this.WorkerRunning || !this.Worker.IsBusy)
             {
                 do
                 {
+                    //If we're waiting here, thats because the worker has decided its about to exit but hasn't yet. Race
+                } while (this.Worker.IsBusy);
 
-                //If we're waiting here, thats because the worker has decided its about to exit but hasn't yet. Race
-                } while (Worker.IsBusy);
-                
                 //Now that its exited we start it again
-                Worker.RunWorkerAsync();
+                this.Worker.RunWorkerAsync();
 
                 //Set this so we dont immediately try and start it again
-                WorkerRunning = true;
+                this.WorkerRunning = true;
             }
 
             //Now the worker can do things
-            Monitor.Exit(WorkerLock);
+            Monitor.Exit(this.WorkerLock);
         }
 
-        private void LoopProcess()
-        {
-            lock (ProcessLock)
-            {
-                Monitor.Enter(WorkerLock);
-
-                while (!Queue.IsEmpty)
-                {
-                    Monitor.Exit(WorkerLock);
-
-                    StringBuilder toLog = new StringBuilder();
-
-                    List<string> toWrite = new List<string>();
-
-                    do
-                    {
-                        if (Queue.TryDequeue(out string line))
-                        {
-                            toWrite.Add(line);
-                        }
-
-                    } while (!Queue.IsEmpty);
-
-                    if (toWrite.Any())
-                    {
-                        for (int i = 0; i < toWrite.Count; i++)
-                        {
-                            toLog.Append(toWrite[i]);
-
-                            if (i != toWrite.Count - 1)
-                            {
-                                toLog.Append(Environment.NewLine);
-                            }
-                        }
-
-                        Action(toLog.ToString());
-                    }
-
-                    Monitor.Enter(WorkerLock);
-                }
-
-                WorkerRunning = false;
-
-                Monitor.Exit(WorkerLock);
-            }
-        }
-
+        /// <summary>
+        /// Disposes of the class, and flushes the queue
+        /// </summary>
+        /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (!this.disposedValue)
             {
                 if (disposing)
                 {
-                    LoopProcess();
+                    this.LoopProcess();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
-                disposedValue = true;
+                this.disposedValue = true;
             }
         }
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~AsyncStringWriter()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
-        public void Dispose()
+        private void LoopProcess()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            StringBuilder toLog = new StringBuilder();
+
+            void Flush()
+            {
+                this.Action(toLog.ToString());
+
+                toLog.Clear();
+            }
+
+            lock (this.ProcessLock)
+            {
+                Monitor.Enter(this.WorkerLock);
+
+                while (!this.Queue.IsEmpty)
+                {
+                    Monitor.Exit(this.WorkerLock);
+
+                    while (this.Queue.TryDequeue(out string line))
+                    {
+                        if (toLog.MaxCapacity <= toLog.Length + line.Length + Environment.NewLine.Length)
+                        {
+                            Flush();
+                        }
+                        else if (toLog.Length > 0)
+                        {
+                            toLog.Append(Environment.NewLine);
+                        }
+
+                        toLog.Append(line);
+                    }
+
+                    Flush();
+
+                    Monitor.Enter(this.WorkerLock);
+                }
+
+                this.WorkerRunning = false;
+
+                Monitor.Exit(this.WorkerLock);
+            }
         }
     }
 }
