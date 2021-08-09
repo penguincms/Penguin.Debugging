@@ -25,6 +25,10 @@ namespace Penguin.Debugging
         /// </summary>
         public string Directory => this.Settings.Directory;
 
+
+        /// <summary>
+        /// Log file full path and file name
+        /// </summary>
         public string LogFileFullName => Path.Combine(this.Settings.Directory, this.LogFileName);
 
         /// <summary>
@@ -61,6 +65,8 @@ namespace Penguin.Debugging
         public LogWriter(LogWriterSettings settings = null)
         {
             this.Settings = settings ?? new LogWriterSettings();
+
+            this.LogFileName = settings.LogFileName ?? this.LogFileName;
 
             //Create output directory if it doesn't exist
             if (!System.IO.Directory.Exists(this.Settings.Directory))

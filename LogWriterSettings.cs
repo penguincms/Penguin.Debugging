@@ -32,5 +32,10 @@ namespace Penguin.Debugging
         /// Location that the log lines should be written to. Defaults to "All"
         /// </summary>
         public LogOutput OutputTarget { get; set; } = LogOutput.All;
+
+        /// <summary>
+        /// Overrides the default log file name of DateTime + Assembly
+        /// </summary>
+        public string LogFileName { get; set; }
     }
 }

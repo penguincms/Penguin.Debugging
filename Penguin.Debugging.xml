@@ -42,6 +42,11 @@
             The Directory that any log files are written to
             </summary>
         </member>
+        <member name="P:Penguin.Debugging.LogWriter.LogFileFullName">
+            <summary>
+            Log file full path and file name
+            </summary>
+        </member>
         <member name="P:Penguin.Debugging.LogWriter.LogFileName">
             <summary>
             Constructs a new instance of the log writer
@@ -106,6 +111,11 @@
         <member name="P:Penguin.Debugging.LogWriterSettings.OutputTarget">
             <summary>
             Location that the log lines should be written to. Defaults to "All"
+            </summary>
+        </member>
+        <member name="P:Penguin.Debugging.LogWriterSettings.LogFileName">
+            <summary>
+            Overrides the default log file name of DateTime + Assembly
             </summary>
         </member>
         <member name="T:Penguin.Debugging.ObjectSerializationMethod">
