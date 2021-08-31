@@ -17,6 +17,6 @@
     <None Remove="README.md" />
     <None Remove="UpgradeLog.htm" />
     <PackageReference Include="Penguin.Extensions.Exceptions" Version="5.0.6-TAHULSY" />
-    <PackageReference Include="Penguin.FileStreams" Version="1.0.1-TAHULSY" />
+    <PackageReference Include="Penguin.FileStreams" Version="1.0.1-TAKBY9S" />
   </ItemGroup>
 </Project>

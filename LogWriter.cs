@@ -14,8 +14,8 @@ namespace Penguin.Debugging
     {
         private static readonly AsyncStringWriter ConsoleQueue = new AsyncStringWriter((s) => Console.WriteLine(s));
         private static readonly AsyncStringWriter DebugQueue = new AsyncStringWriter((s) => Debug.WriteLine(s));
-        private readonly AsyncStringWriter FileQueue;
-        private readonly IFileWriter FileWriter;
+        private AsyncStringWriter FileQueue;
+        private IFileWriter FileWriter;
 
         private readonly LogWriterSettings Settings;
         private bool disposedValue;
@@ -74,8 +74,15 @@ namespace Penguin.Debugging
                 System.IO.Directory.CreateDirectory(this.Settings.Directory);
             }
 
-            this.FileWriter = FileWriterFactory.GetFileWriter(this.LogFileFullName, settings.Compression);
+            if (settings.OutputTarget.HasFlag(LogOutput.File))
+            {
+                InitFileQueue();
+            }    
+        }
 
+        private void InitFileQueue()
+        {
+            this.FileWriter = FileWriterFactory.GetFileWriter(this.LogFileFullName, this.Settings.Compression);
             this.FileQueue = new AsyncStringWriter((s) => this.FileWriter.WriteLine(s));
         }
 
@@ -94,7 +101,7 @@ namespace Penguin.Debugging
         /// </summary>
         public void Flush()
         {
-            this.FileWriter.Flush();
+            this.FileWriter?.Flush();
         }
 
         /// <summary>
@@ -113,6 +120,11 @@ namespace Penguin.Debugging
             target = target ?? this.Settings.OutputTarget;
             if (target.Value.HasFlag(LogOutput.File))
             {
+                if(this.FileQueue is null)
+                {
+                    InitFileQueue();
+                }
+
                 //To the file
                 this.FileQueue.Enqueue(logString);
             }
@@ -135,11 +147,11 @@ namespace Penguin.Debugging
         {
             if (!this.disposedValue)
             {
-                this.FileQueue.Dispose();
+                this.FileQueue?.Dispose();
                 ConsoleQueue.Dispose();
                 DebugQueue.Dispose();
 
-                this.FileWriter.Dispose();
+                this.FileWriter?.Dispose();
 
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
