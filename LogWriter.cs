@@ -66,7 +66,7 @@ namespace Penguin.Debugging
         {
             this.Settings = settings ?? new LogWriterSettings();
 
-            this.LogFileName = settings.LogFileName ?? this.LogFileName;
+            this.LogFileName = this.Settings.LogFileName ?? this.LogFileName;
 
             //Create output directory if it doesn't exist
             if (!System.IO.Directory.Exists(this.Settings.Directory))
@@ -74,7 +74,7 @@ namespace Penguin.Debugging
                 System.IO.Directory.CreateDirectory(this.Settings.Directory);
             }
 
-            if (settings.OutputTarget.HasFlag(LogOutput.File))
+            if (this.Settings.OutputTarget.HasFlag(LogOutput.File))
             {
                 InitFileQueue();
             }    
