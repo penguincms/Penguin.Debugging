@@ -16,7 +16,5 @@
     <None Remove=".metaOne" />
     <None Remove="README.md" />
     <None Remove="UpgradeLog.htm" />
-    <ProjectReference Include="..\Penguin.Extensions.Exceptions\Penguin.Extensions.Exceptions.Local.csproj" />
-    <ProjectReference Include="..\Penguin.FileStreams\Penguin.FileStreams.Local.csproj" />
   </ItemGroup>
 </Project>

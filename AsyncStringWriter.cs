@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 
@@ -12,13 +13,11 @@ namespace Penguin.Debugging
     public class AsyncStringWriter : IDisposable
     {
         private readonly Action<string> Action;
-        private readonly object ProcessLock = new object();
         private readonly ConcurrentQueue<string> Queue = new ConcurrentQueue<string>();
         private readonly BackgroundWorker Worker = new BackgroundWorker();
-        private readonly object WorkerLock = new object();
+        private readonly AutoResetEvent QueueGate = new AutoResetEvent(false);
+        private readonly AutoResetEvent DisposeGate = new AutoResetEvent(false);
         private bool disposedValue;
-
-        private bool WorkerRunning = false;
 
         /// <summary>
         /// Creates a new instance of the string writer class
@@ -29,6 +28,8 @@ namespace Penguin.Debugging
             this.Action = action;
 
             this.Worker.DoWork += (se, e) => this.LoopProcess();
+
+            this.Worker.RunWorkerAsync();
         }
 
         /// <summary>
@@ -47,29 +48,10 @@ namespace Penguin.Debugging
         /// <param name="toEnque">The string to Enqueue</param>
         public void Enqueue(string toEnque)
         {
-            //Dont let the worker check its state while we're mucking with it
-            Monitor.Enter(this.WorkerLock);
-
             //Add the line to print
             this.Queue.Enqueue(toEnque);
 
-            //Set internally by the worker before it exits, so more accurate than IsBusy
-            if (!this.WorkerRunning || !this.Worker.IsBusy)
-            {
-                do
-                {
-                    //If we're waiting here, thats because the worker has decided its about to exit but hasn't yet. Race
-                } while (this.Worker.IsBusy);
-
-                //Now that its exited we start it again
-                this.Worker.RunWorkerAsync();
-
-                //Set this so we dont immediately try and start it again
-                this.WorkerRunning = true;
-            }
-
-            //Now the worker can do things
-            Monitor.Exit(this.WorkerLock);
+            QueueGate.Set();
         }
 
         /// <summary>
@@ -80,14 +62,17 @@ namespace Penguin.Debugging
         {
             if (!this.disposedValue)
             {
-                if (disposing)
-                {
-                    this.LoopProcess();
-                }
-
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
                 this.disposedValue = true;
+
+                QueueGate.Set();
+
+                DisposeGate.WaitOne();
+            }
+            else
+            {
+                Debug.WriteLine($"Attempting to dispose of already disposed {typeof(AsyncStringWriter)}");
             }
         }
 
@@ -102,37 +87,33 @@ namespace Penguin.Debugging
                 toLog.Clear();
             }
 
-            lock (this.ProcessLock)
+            while (QueueGate.WaitOne() && !this.disposedValue)
             {
-                Monitor.Enter(this.WorkerLock);
+                bool flush = false;
 
-                while (!this.Queue.IsEmpty)
+                while (this.Queue.TryDequeue(out string line))
                 {
-                    Monitor.Exit(this.WorkerLock);
+                    flush = true;
 
-                    while (this.Queue.TryDequeue(out string line))
+                    if (toLog.MaxCapacity <= toLog.Length + line.Length + Environment.NewLine.Length)
                     {
-                        if (toLog.MaxCapacity <= toLog.Length + line.Length + Environment.NewLine.Length)
-                        {
-                            Flush();
-                        }
-                        else if (toLog.Length > 0)
-                        {
-                            toLog.Append(Environment.NewLine);
-                        }
-
-                        toLog.Append(line);
+                        Flush();
+                    }
+                    else if (toLog.Length > 0)
+                    {
+                        toLog.Append(Environment.NewLine);
                     }
 
-                    Flush();
-
-                    Monitor.Enter(this.WorkerLock);
+                    toLog.Append(line);
                 }
 
-                this.WorkerRunning = false;
-
-                Monitor.Exit(this.WorkerLock);
+                if (flush)
+                {
+                    Flush();
+                }
             }
+
+            DisposeGate.Set();
         }
     }
 }

@@ -8,6 +8,7 @@
     <AssemblyName>Penguin.Debugging</AssemblyName>
     <RootNamespace>Penguin.Debugging</RootNamespace>
     <DocumentationFile>Penguin.Debugging.xml</DocumentationFile>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <None Remove=".gitignore" />
@@ -16,7 +17,7 @@
     <None Remove=".metaOne" />
     <None Remove="README.md" />
     <None Remove="UpgradeLog.htm" />
-    <PackageReference Include="Penguin.Extensions.Exceptions" Version="5.0.6-TAHULSY" />
-    <PackageReference Include="Penguin.FileStreams" Version="1.0.1-TAKBY9S" />
+    <PackageReference Include="Penguin.Extensions.Exceptions" Version="5.0.6-TATDFB4" />
+    <PackageReference Include="Penguin.FileStreams" Version="1.0.1-TATDFB4" />
   </ItemGroup>
 </Project>

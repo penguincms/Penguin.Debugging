@@ -18,6 +18,7 @@ namespace Penguin.Debugging
         private IFileWriter FileWriter;
 
         private readonly LogWriterSettings Settings;
+
         private bool disposedValue;
 
         /// <summary>
@@ -38,6 +39,17 @@ namespace Penguin.Debugging
         /// The name of the file the (if any) disk stream is being written to
         /// </summary>
         public string LogFileName { get; private set; } = $"{DateTime.Now:yyyyMMdd_HHmmss}_{AssemblyName}.log";
+
+        /// <summary>
+        /// When writing to the debug window, the name of the output that will be used. 
+        /// </summary>
+        public string DebugCategory
+        {
+            get => this._debugCategory ?? this.LogFileName;
+            set => _debugCategory = value;
+        }
+
+        private string _debugCategory;
 
         private static string AssemblyName
         {
@@ -77,8 +89,22 @@ namespace Penguin.Debugging
             if (this.Settings.OutputTarget.HasFlag(LogOutput.File))
             {
                 InitFileQueue();
-            }    
+            }
+
+            //https://stackoverflow.com/questions/18020861/how-to-get-notified-before-static-variables-are-finalized
+            //Catch domain shutdown (Hack: frantically look for things we can catch)
+            if (AppDomain.CurrentDomain.IsDefaultAppDomain())
+            {
+                AppDomain.CurrentDomain.ProcessExit += MyTerminationHandler;
+            }
+            else
+            {
+                AppDomain.CurrentDomain.DomainUnload += MyTerminationHandler;
+            }
         }
+
+        private void MyTerminationHandler(object sender, EventArgs e) => this.Dispose();
+        
 
         private void InitFileQueue()
         {
@@ -120,7 +146,7 @@ namespace Penguin.Debugging
             target = target ?? this.Settings.OutputTarget;
             if (target.Value.HasFlag(LogOutput.File))
             {
-                if(this.FileQueue is null)
+                if (this.FileQueue is null)
                 {
                     InitFileQueue();
                 }
@@ -147,15 +173,18 @@ namespace Penguin.Debugging
         {
             if (!this.disposedValue)
             {
-                this.FileQueue?.Dispose();
-                ConsoleQueue.Dispose();
-                DebugQueue.Dispose();
-
-                this.FileWriter?.Dispose();
-
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
                 this.disposedValue = true;
+
+                this.FileQueue?.Dispose();
+                this.FileWriter?.Dispose();
+                ConsoleQueue.Dispose();
+                DebugQueue.Dispose();
+            }
+            else
+            {
+                Debug.WriteLine($"Attempting to dispose of already disposed {typeof(LogWriter)}");
             }
         }
 
@@ -192,11 +221,6 @@ namespace Penguin.Debugging
                 default:
                     throw new NotImplementedException($"{nameof(this.Settings.ObjectSerializationMethod)} unimplemented value {this.Settings.ObjectSerializationMethod}");
             }
-        }
-
-        ~LogWriter()
-        {
-            this.Dispose(false);
         }
     }
 }
