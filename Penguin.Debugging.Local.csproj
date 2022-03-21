@@ -8,6 +8,7 @@
     <AssemblyName>Penguin.Debugging</AssemblyName>
     <RootNamespace>Penguin.Debugging</RootNamespace>
     <DocumentationFile>Penguin.Debugging.xml</DocumentationFile>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
   <ItemGroup>
     <None Remove=".gitignore" />
@@ -16,5 +17,7 @@
     <None Remove=".metaOne" />
     <None Remove="README.md" />
     <None Remove="UpgradeLog.htm" />
+    <ProjectReference Include="..\Penguin.Extensions.Exceptions\Penguin.Extensions.Exceptions.Local.csproj" />
+    <ProjectReference Include="..\Penguin.FileStreams\Penguin.FileStreams.Local.csproj" />
   </ItemGroup>
 </Project>

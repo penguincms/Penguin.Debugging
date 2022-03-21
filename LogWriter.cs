@@ -1,4 +1,4 @@
-﻿using Penguin.FileStreams;
+using Penguin.FileStreams;
 using Penguin.FileStreams.Interfaces;
 using System;
 using System.Diagnostics;
@@ -25,7 +25,6 @@ namespace Penguin.Debugging
         /// The Directory that any log files are written to
         /// </summary>
         public string Directory => this.Settings.Directory;
-
 
         /// <summary>
         /// Log file full path and file name
@@ -105,7 +104,6 @@ namespace Penguin.Debugging
 
         private void MyTerminationHandler(object sender, EventArgs e) => this.Dispose();
         
-
         private void InitFileQueue()
         {
             this.FileWriter = FileWriterFactory.GetFileWriter(this.LogFileFullName, this.Settings.Compression);
