@@ -125,10 +125,7 @@ namespace Penguin.Debugging
         /// <summary>
         /// Flushes the disk output streamwriter
         /// </summary>
-        public void Flush()
-        {
-            this.FileWriter?.Flush();
-        }
+        public void Flush() => this.FileWriter?.Flush();
 
         /// <summary>
         /// Writes an object or message to the log targets
@@ -148,7 +145,7 @@ namespace Penguin.Debugging
             {
                 if (this.FileQueue is null)
                 {
-                    InitFileQueue();
+                    this.InitFileQueue();
                 }
 
                 //To the file
