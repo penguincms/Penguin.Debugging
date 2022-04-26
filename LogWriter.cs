@@ -45,7 +45,7 @@ namespace Penguin.Debugging
         public string DebugCategory
         {
             get => this._debugCategory ?? this.LogFileName;
-            set => _debugCategory = value;
+            set => this._debugCategory = value;
         }
 
         private string _debugCategory;
@@ -82,28 +82,28 @@ namespace Penguin.Debugging
             //Create output directory if it doesn't exist
             if (!System.IO.Directory.Exists(this.Settings.Directory))
             {
-                System.IO.Directory.CreateDirectory(this.Settings.Directory);
+                _ = System.IO.Directory.CreateDirectory(this.Settings.Directory);
             }
 
             if (this.Settings.OutputTarget.HasFlag(LogOutput.File))
             {
-                InitFileQueue();
+                this.InitFileQueue();
             }
 
             //https://stackoverflow.com/questions/18020861/how-to-get-notified-before-static-variables-are-finalized
             //Catch domain shutdown (Hack: frantically look for things we can catch)
             if (AppDomain.CurrentDomain.IsDefaultAppDomain())
             {
-                AppDomain.CurrentDomain.ProcessExit += MyTerminationHandler;
+                AppDomain.CurrentDomain.ProcessExit += this.MyTerminationHandler;
             }
             else
             {
-                AppDomain.CurrentDomain.DomainUnload += MyTerminationHandler;
+                AppDomain.CurrentDomain.DomainUnload += this.MyTerminationHandler;
             }
         }
 
         private void MyTerminationHandler(object sender, EventArgs e) => this.Dispose();
-        
+
         private void InitFileQueue()
         {
             this.FileWriter = FileWriterFactory.GetFileWriter(this.LogFileFullName, this.Settings.Compression);

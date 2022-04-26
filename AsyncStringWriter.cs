@@ -51,7 +51,7 @@ namespace Penguin.Debugging
             //Add the line to print
             this.Queue.Enqueue(toEnque);
 
-            QueueGate.Set();
+            _ = this.QueueGate.Set();
         }
 
         /// <summary>
@@ -66,9 +66,9 @@ namespace Penguin.Debugging
                 // TODO: set large fields to null
                 this.disposedValue = true;
 
-                QueueGate.Set();
+                _ = this.QueueGate.Set();
 
-                DisposeGate.WaitOne();
+                _ = this.DisposeGate.WaitOne();
             }
             else
             {
@@ -84,10 +84,10 @@ namespace Penguin.Debugging
             {
                 this.Action(toLog.ToString());
 
-                toLog.Clear();
+                _ = toLog.Clear();
             }
 
-            while (QueueGate.WaitOne() && !this.disposedValue)
+            while (this.QueueGate.WaitOne() && !this.disposedValue)
             {
                 bool flush = false;
 
@@ -101,10 +101,10 @@ namespace Penguin.Debugging
                     }
                     else if (toLog.Length > 0)
                     {
-                        toLog.Append(Environment.NewLine);
+                        _ = toLog.Append(Environment.NewLine);
                     }
 
-                    toLog.Append(line);
+                    _ = toLog.Append(line);
                 }
 
                 if (flush)
@@ -113,7 +113,7 @@ namespace Penguin.Debugging
                 }
             }
 
-            DisposeGate.Set();
+            _ = this.DisposeGate.Set();
         }
     }
 }

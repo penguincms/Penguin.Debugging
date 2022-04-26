@@ -83,7 +83,7 @@ namespace Penguin.Debugging
 
                 if (Success)
                 {
-                    Queue.Clear();
+                    _ = Queue.Clear();
                 }
             }
 
@@ -104,13 +104,13 @@ namespace Penguin.Debugging
 
             lock (ObjectLock)
             {
-                Queue.Append(toLog);
-                Queue.Append(System.Environment.NewLine);
+                _ = Queue.Append(toLog);
+                _ = Queue.Append(System.Environment.NewLine);
             }
 
             if (levelToLog >= Level)
             {
-                Flush();
+                _ = Flush();
             }
         }
 
