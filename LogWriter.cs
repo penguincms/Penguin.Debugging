@@ -102,7 +102,10 @@ namespace Penguin.Debugging
             }
         }
 
-        private void MyTerminationHandler(object sender, EventArgs e) => this.Dispose();
+        private void MyTerminationHandler(object sender, EventArgs e)
+        {
+            this.Dispose();
+        }
 
         private void InitFileQueue()
         {
@@ -123,7 +126,10 @@ namespace Penguin.Debugging
         /// <summary>
         /// Flushes the disk output streamwriter
         /// </summary>
-        public void Flush() => this.FileWriter?.Flush();
+        public void Flush()
+        {
+            this.FileWriter?.Flush();
+        }
 
         /// <summary>
         /// Writes an object or message to the log targets

@@ -17,7 +17,7 @@
     <None Remove=".metaOne" />
     <None Remove="README.md" />
     <None Remove="UpgradeLog.htm" />
-    <PackageReference Include="Penguin.Extensions.Exceptions" Version="5.0.6-TAWVHS0" />
-    <PackageReference Include="Penguin.FileStreams" Version="1.0.1-TAWVHS0" />
+    <PackageReference Include="Penguin.Extensions.Exceptions" Version="5.0.6-TAX9354" />
+    <PackageReference Include="Penguin.FileStreams" Version="1.0.1-TAX9354" />
   </ItemGroup>
 </Project>
