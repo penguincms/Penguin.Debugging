@@ -17,6 +17,8 @@ namespace Penguin.Debugging
         private readonly BackgroundWorker Worker = new BackgroundWorker();
         private readonly AutoResetEvent QueueGate = new AutoResetEvent(false);
         private readonly AutoResetEvent DisposeGate = new AutoResetEvent(false);
+        internal readonly ManualResetEvent FlushGate = new ManualResetEvent(true);
+
         private bool disposedValue;
 
         /// <summary>
@@ -89,6 +91,8 @@ namespace Penguin.Debugging
 
             while (this.QueueGate.WaitOne() && !this.disposedValue)
             {
+                FlushGate.Reset();
+
                 bool flush = false;
 
                 while (this.Queue.TryDequeue(out string line))
@@ -111,8 +115,11 @@ namespace Penguin.Debugging
                 {
                     Flush();
                 }
+
+                FlushGate.Set();
             }
 
+            FlushGate.Set();
             _ = this.DisposeGate.Set();
         }
     }

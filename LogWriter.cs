@@ -4,6 +4,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace Penguin.Debugging
 {
@@ -126,9 +127,15 @@ namespace Penguin.Debugging
         /// <summary>
         /// Flushes the disk output streamwriter
         /// </summary>
-        public void Flush()
+        public Task Flush()
         {
-            this.FileWriter?.Flush();
+            return Task.Run(() => {
+                if (this.FileQueue != null)
+                {
+                    this.FileQueue.FlushGate.WaitOne();
+                    this.FileWriter?.Flush();
+                }
+            });
         }
 
         /// <summary>
