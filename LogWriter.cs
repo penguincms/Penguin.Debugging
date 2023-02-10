@@ -13,8 +13,18 @@ namespace Penguin.Debugging
     /// </summary>
     public class LogWriter : IDisposable
     {
-        private static readonly AsyncStringWriter ConsoleQueue = new AsyncStringWriter((s) => Console.WriteLine(s));
-        private static readonly AsyncStringWriter DebugQueue = new AsyncStringWriter((s) => Debug.WriteLine(s));
+        private static void ConsoleWriteLine(string s)
+        {
+            Console.WriteLine(s);
+        }
+
+        private static void DebugWriteLine(string s)
+        {
+            Debug.WriteLine(s);
+        }
+
+        private static readonly AsyncStringWriter ConsoleQueue = new(ConsoleWriteLine);
+        private static readonly AsyncStringWriter DebugQueue = new(DebugWriteLine);
         private AsyncStringWriter FileQueue;
         private IFileWriter FileWriter;
 
@@ -25,12 +35,12 @@ namespace Penguin.Debugging
         /// <summary>
         /// The Directory that any log files are written to
         /// </summary>
-        public string Directory => this.Settings.Directory;
+        public string Directory => Settings.Directory;
 
         /// <summary>
         /// Log file full path and file name
         /// </summary>
-        public string LogFileFullName => Path.Combine(this.Settings.Directory, this.LogFileName);
+        public string LogFileFullName => Path.Combine(Settings.Directory, LogFileName);
 
         /// <summary>
         /// Constructs a new instance of the log writer
@@ -41,12 +51,12 @@ namespace Penguin.Debugging
         public string LogFileName { get; private set; } = $"{DateTime.Now:yyyyMMdd_HHmmss}_{AssemblyName}.log";
 
         /// <summary>
-        /// When writing to the debug window, the name of the output that will be used. 
+        /// When writing to the debug window, the name of the output that will be used.
         /// </summary>
         public string DebugCategory
         {
-            get => this._debugCategory ?? this.LogFileName;
-            set => this._debugCategory = value;
+            get => _debugCategory ?? LogFileName;
+            set => _debugCategory = value;
         }
 
         private string _debugCategory;
@@ -76,42 +86,42 @@ namespace Penguin.Debugging
         /// <param name="settings">Any settings to overwrite from default</param>
         public LogWriter(LogWriterSettings settings = null)
         {
-            this.Settings = settings ?? new LogWriterSettings();
+            Settings = settings ?? new LogWriterSettings();
 
-            this.LogFileName = this.Settings.LogFileName ?? this.LogFileName;
+            LogFileName = Settings.LogFileName ?? LogFileName;
 
             //Create output directory if it doesn't exist
-            if (!System.IO.Directory.Exists(this.Settings.Directory))
+            if (!System.IO.Directory.Exists(Settings.Directory))
             {
-                _ = System.IO.Directory.CreateDirectory(this.Settings.Directory);
+                _ = System.IO.Directory.CreateDirectory(Settings.Directory);
             }
 
-            if (this.Settings.OutputTarget.HasFlag(LogOutput.File))
+            if (Settings.OutputTarget.HasFlag(LogOutput.File))
             {
-                this.InitFileQueue();
+                InitFileQueue();
             }
 
             //https://stackoverflow.com/questions/18020861/how-to-get-notified-before-static-variables-are-finalized
             //Catch domain shutdown (Hack: frantically look for things we can catch)
             if (AppDomain.CurrentDomain.IsDefaultAppDomain())
             {
-                AppDomain.CurrentDomain.ProcessExit += this.MyTerminationHandler;
+                AppDomain.CurrentDomain.ProcessExit += MyTerminationHandler;
             }
             else
             {
-                AppDomain.CurrentDomain.DomainUnload += this.MyTerminationHandler;
+                AppDomain.CurrentDomain.DomainUnload += MyTerminationHandler;
             }
         }
 
         private void MyTerminationHandler(object sender, EventArgs e)
         {
-            this.Dispose();
+            Dispose();
         }
 
         private void InitFileQueue()
         {
-            this.FileWriter = FileWriterFactory.GetFileWriter(this.LogFileFullName, this.Settings.Compression);
-            this.FileQueue = new AsyncStringWriter((s) => this.FileWriter.WriteLine(s));
+            FileWriter = FileWriterFactory.GetFileWriter(LogFileFullName, Settings.Compression);
+            FileQueue = new AsyncStringWriter(FileWriter.WriteLine);
         }
 
         /// <summary>
@@ -120,7 +130,7 @@ namespace Penguin.Debugging
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            this.Dispose(disposing: true);
+            Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 
@@ -129,11 +139,12 @@ namespace Penguin.Debugging
         /// </summary>
         public Task Flush()
         {
-            return Task.Run(() => {
-                if (this.FileQueue != null)
+            return Task.Run(() =>
+            {
+                if (FileQueue != null)
                 {
-                    this.FileQueue.FlushGate.WaitOne();
-                    this.FileWriter?.Flush();
+                    _ = FileQueue.FlushGate.WaitOne();
+                    FileWriter?.Flush();
                 }
             });
         }
@@ -149,18 +160,18 @@ namespace Penguin.Debugging
             string prepend = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] ";
 
             //Add the time stamp to the string
-            string logString = $"{prepend} {this.SerializeObject(toLog)}";
+            string logString = $"{prepend} {SerializeObject(toLog)}";
 
-            target = target ?? this.Settings.OutputTarget;
+            target ??= Settings.OutputTarget;
             if (target.Value.HasFlag(LogOutput.File))
             {
-                if (this.FileQueue is null)
+                if (FileQueue is null)
                 {
-                    this.InitFileQueue();
+                    InitFileQueue();
                 }
 
                 //To the file
-                this.FileQueue.Enqueue(logString);
+                FileQueue.Enqueue(logString);
             }
 
             if (target.Value.HasFlag(LogOutput.Debug))
@@ -179,14 +190,14 @@ namespace Penguin.Debugging
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {
-            if (!this.disposedValue)
+            if (!disposedValue)
             {
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
-                this.disposedValue = true;
+                disposedValue = true;
 
-                this.FileQueue?.Dispose();
-                this.FileWriter?.Dispose();
+                FileQueue?.Dispose();
+                FileWriter?.Dispose();
                 ConsoleQueue.Dispose();
                 DebugQueue.Dispose();
             }
@@ -203,18 +214,18 @@ namespace Penguin.Debugging
                 return s;
             }
 
-            if (this.Settings.ObjectSerializationOverride is null)
+            if (Settings.ObjectSerializationOverride is null)
             {
                 return $"{toSerialize}";
             }
 
-            switch (this.Settings.ObjectSerializationMethod)
+            switch (Settings.ObjectSerializationMethod)
             {
                 case ObjectSerializationMethod.ToString:
                     return $"{toSerialize}";
 
                 case ObjectSerializationMethod.Override:
-                    return this.Settings.ObjectSerializationOverride(toSerialize);
+                    return Settings.ObjectSerializationOverride(toSerialize);
 
                 case ObjectSerializationMethod.Auto:
                     if (toSerialize is null)
@@ -224,10 +235,10 @@ namespace Penguin.Debugging
 
                     MethodInfo mi = toSerialize.GetType().GetMethod("ToString");
 
-                    return mi.DeclaringType == typeof(object) ? this.Settings.ObjectSerializationOverride(toSerialize) : $"{toSerialize}";
+                    return mi.DeclaringType == typeof(object) ? Settings.ObjectSerializationOverride(toSerialize) : $"{toSerialize}";
 
                 default:
-                    throw new NotImplementedException($"{nameof(this.Settings.ObjectSerializationMethod)} unimplemented value {this.Settings.ObjectSerializationMethod}");
+                    throw new NotImplementedException($"{nameof(Settings.ObjectSerializationMethod)} unimplemented value {Settings.ObjectSerializationMethod}");
             }
         }
     }

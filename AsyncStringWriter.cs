@@ -13,11 +13,11 @@ namespace Penguin.Debugging
     public class AsyncStringWriter : IDisposable
     {
         private readonly Action<string> Action;
-        private readonly ConcurrentQueue<string> Queue = new ConcurrentQueue<string>();
-        private readonly BackgroundWorker Worker = new BackgroundWorker();
-        private readonly AutoResetEvent QueueGate = new AutoResetEvent(false);
-        private readonly AutoResetEvent DisposeGate = new AutoResetEvent(false);
-        internal readonly ManualResetEvent FlushGate = new ManualResetEvent(true);
+        private readonly ConcurrentQueue<string> Queue = new();
+        private readonly BackgroundWorker Worker = new();
+        private readonly AutoResetEvent QueueGate = new(false);
+        private readonly AutoResetEvent DisposeGate = new(false);
+        internal readonly ManualResetEvent FlushGate = new(true);
 
         private bool disposedValue;
 
@@ -27,11 +27,11 @@ namespace Penguin.Debugging
         /// <param name="action">A function that should be the target of the processing background thread.</param>
         public AsyncStringWriter(Action<string> action)
         {
-            this.Action = action;
+            Action = action;
 
-            this.Worker.DoWork += (se, e) => this.LoopProcess();
+            Worker.DoWork += (se, e) => LoopProcess();
 
-            this.Worker.RunWorkerAsync();
+            Worker.RunWorkerAsync();
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace Penguin.Debugging
         public void Dispose()
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-            this.Dispose(disposing: true);
+            Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 
@@ -51,9 +51,9 @@ namespace Penguin.Debugging
         public void Enqueue(string toEnque)
         {
             //Add the line to print
-            this.Queue.Enqueue(toEnque);
+            Queue.Enqueue(toEnque);
 
-            _ = this.QueueGate.Set();
+            _ = QueueGate.Set();
         }
 
         /// <summary>
@@ -62,15 +62,15 @@ namespace Penguin.Debugging
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)
         {
-            if (!this.disposedValue)
+            if (!disposedValue)
             {
                 // TODO: free unmanaged resources (unmanaged objects) and override finalizer
                 // TODO: set large fields to null
-                this.disposedValue = true;
+                disposedValue = true;
 
-                _ = this.QueueGate.Set();
+                _ = QueueGate.Set();
 
-                _ = this.DisposeGate.WaitOne();
+                _ = DisposeGate.WaitOne();
             }
             else
             {
@@ -80,22 +80,22 @@ namespace Penguin.Debugging
 
         private void LoopProcess()
         {
-            StringBuilder toLog = new StringBuilder();
+            StringBuilder toLog = new();
 
             void Flush()
             {
-                this.Action(toLog.ToString());
+                Action(toLog.ToString());
 
                 _ = toLog.Clear();
             }
 
-            while (this.QueueGate.WaitOne() && !this.disposedValue)
+            while (QueueGate.WaitOne() && !disposedValue)
             {
-                FlushGate.Reset();
+                _ = FlushGate.Reset();
 
                 bool flush = false;
 
-                while (this.Queue.TryDequeue(out string line))
+                while (Queue.TryDequeue(out string line))
                 {
                     flush = true;
 
@@ -116,11 +116,11 @@ namespace Penguin.Debugging
                     Flush();
                 }
 
-                FlushGate.Set();
+                _ = FlushGate.Set();
             }
 
-            FlushGate.Set();
-            _ = this.DisposeGate.Set();
+            _ = FlushGate.Set();
+            _ = DisposeGate.Set();
         }
     }
 }

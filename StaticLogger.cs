@@ -11,9 +11,9 @@ namespace Penguin.Debugging
     /// </summary>
     public static class StaticLogger
     {
-        private static readonly object ObjectLock = new object();
+        private static readonly object ObjectLock = new();
 
-        private static readonly StringBuilder Queue = new StringBuilder();
+        private static readonly StringBuilder Queue = new();
 
         /// <summary>
         /// This func should accept the string to be logged, and return whether or not the log was successful.

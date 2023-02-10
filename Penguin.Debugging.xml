@@ -57,7 +57,7 @@
         </member>
         <member name="P:Penguin.Debugging.LogWriter.DebugCategory">
             <summary>
-            When writing to the debug window, the name of the output that will be used. 
+            When writing to the debug window, the name of the output that will be used.
             </summary>
         </member>
         <member name="M:Penguin.Debugging.LogWriter.#ctor(Penguin.Debugging.LogWriterSettings)">
