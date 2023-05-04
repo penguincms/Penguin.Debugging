@@ -18,6 +18,6 @@
     <None Remove=".metaOne" />
     <None Remove="README.md" />
     <None Remove="UpgradeLog.htm" />
-    <PackageReference Include="Penguin.Extensions.Exceptions" Version="5.7.0" />
+    <PackageReference Include="Penguin.Extensions.Exceptions" Version="5.15.0" />
   </ItemGroup>
 </Project>
